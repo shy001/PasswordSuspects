@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Web;
-
+using PasswordDeterminationLogic;
 
 namespace PasswordDeterminationLogic
 {
@@ -14,34 +14,35 @@ namespace PasswordDeterminationLogic
         private int _passwordLength = 0;
         private int _numberOfKnownSubstrings = 0;
         private int _characterPossibilities = 26;
-        private string _fileContents = null;
+        private bool checkDigitResult = false;
         
-        private List<string> substrings;
+        private List<string> knownSubstrings;
         public string ReadInputFile(string fileName)
         {
             string filePath = @"C:\mytest\"+fileName;
-            string validationOfFile = ValidateFile(filePath);
+            string validationOfFile = new ReadFileRule().ValidateFile(filePath);
 
-            double result = 0;
-            string line;
-            int countCases = 1;
             if (string.IsNullOrEmpty(validationOfFile))
             {
-                System.IO.StreamReader file =  new System.IO.StreamReader(@"c:\mytest\"+fileName);
+                double result = 0;
+                string line;
+                int countCases = 1;
+
+                System.IO.StreamReader file =  new System.IO.StreamReader(filePath);
                 while ((line = file.ReadLine()) != null)
-                {   
-                    
+                {
+                    checkDigitResult = new ReadFileRule().IsDigitsOnly(line);
                     //check if line has digits --> this will indicate length & no of known substrings
-                    if (IsDigitsOnly(line))
+                    if (checkDigitResult)
                     {
-                        if (substrings == null || substrings.Any())
+                        if (knownSubstrings == null || knownSubstrings.Any())
                         {
-                            if (substrings == null)
-                                substrings = new List<string>();
+                            if (knownSubstrings == null)
+                                knownSubstrings = new List<string>();
                             else
                             {
                                 ManipulateSubstrings();
-                                substrings = new List<string>();
+                                knownSubstrings = new List<string>();
                             }
                         }
                         //end of file
@@ -62,7 +63,7 @@ namespace PasswordDeterminationLogic
                     }
                     else
                     {
-                        substrings.Add(line);
+                        knownSubstrings.Add(line);
                         //Console.WriteLine(line);
                     }
                 }
@@ -71,27 +72,11 @@ namespace PasswordDeterminationLogic
             return validationOfFile;
         }
         
-        public string ValidateFile(string filePath)
-        {
-            if (File.Exists(filePath))
-            {
-                StreamReader passwordInputFile = new StreamReader(filePath);
-                if (passwordInputFile.EndOfStream)
-                    return "Empty File";
-                _fileContents = passwordInputFile.ReadToEnd();
-                if (!_fileContents.Contains("0 0"))
-                    return "Does not contain '0 0'";
-            }
-            else
-            {
-                return "File does not Exist";
-            }
-            return null;
-        }
 
         private string ReadLineOneOfFile(string passwordHints)
         {
-            if (!IsDigitsOnly(passwordHints))
+            checkDigitResult = new ReadFileRule().IsDigitsOnly(passwordHints);
+            if (!checkDigitResult)
                 return "False";
             int spaceInPasswordHints = passwordHints.IndexOf(' ');
             _passwordLength = Convert.ToInt32(passwordHints.Substring(0, spaceInPasswordHints));
@@ -99,20 +84,20 @@ namespace PasswordDeterminationLogic
             return null;
         }
 
-        private bool IsDigitsOnly(string str)
-        {
-            foreach (char c in str)
-            {
-                if ((c < '0' || c > '9') && (c != ' '))
-                    return false;
-            }
+        //private bool IsDigitsOnly(string str)
+        //{
+        //    foreach (char c in str)
+        //    {
+        //        if ((c < '0' || c > '9') && (c != ' '))
+        //            return false;
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
 
-        public double FindPowerOf(int lengthOfString, int noOfOptions)
+        public double FindPowerOf(int powerOf, int baseValue)
         {
-            return Math.Pow(noOfOptions, lengthOfString);
+            return Math.Pow(baseValue, powerOf);
         }
 
         public int ManageCombinations(int lengthOfString, int noOfOptions)
@@ -127,11 +112,10 @@ namespace PasswordDeterminationLogic
 
         public void ManipulateSubstrings()
         {
-            List<string> shuffled = substrings.OrderBy(a => Guid.NewGuid()).ToList();
-            for (int i = 0; i < substrings.Count(); i++)
-            {
-                
-                //Console.WriteLine(substrings.OrderBy(s => Guid.NewGuid()).ToList());//.ForEach(s => s.));
+            List<string> shuffled = knownSubstrings.OrderBy(a => Guid.NewGuid()).ToList();
+            for (int i = 0; i < knownSubstrings.Count(); i++)
+            {                
+                //Console.WriteLine(knownSubstrings.OrderBy(s => Guid.NewGuid()).ToList());//.ForEach(s => s.));
                 foreach (var s in shuffled.OrderBy(a => Guid.NewGuid()))
                 {
                     Console.Write(s);

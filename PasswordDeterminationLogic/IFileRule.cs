@@ -8,6 +8,6 @@ namespace PasswordDeterminationLogic
 {
     public interface IFileRule
     {
-        string ValidateFile(string fileName);
+        string ValidateFile(string filePath);
     }
 }

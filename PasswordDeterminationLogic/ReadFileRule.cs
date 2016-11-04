@@ -9,9 +9,8 @@ namespace PasswordDeterminationLogic
 {
     public class ReadFileRule : IFileRule
     {
-        public string ValidateFile(string fileName)
-        {
-            string filePath = @"c:\mytest\" + fileName;
+        public string ValidateFile(string filePath)
+        {            
             string _fileContents = "";
             if (File.Exists(filePath))
             {
@@ -27,6 +26,17 @@ namespace PasswordDeterminationLogic
                 return "File does not Exist";
             }
             return null;
+        }
+
+        public bool IsDigitsOnly(string str)
+        {
+            foreach (char c in str)
+            {
+                if ((c < '0' || c > '9') && (c != ' '))
+                    return false;
+            }
+
+            return true;
         }
     }
 }
